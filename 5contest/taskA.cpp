@@ -1,9 +1,6 @@
+#include <cstring>
 #include <iostream>
 #include <vector>
-
-static const int32_t kBaseAdd = 18445;
-static const int32_t kBaseFactor = 42;
-static const int32_t kSize = 40;
 
 class HashTable {
  public:
@@ -14,9 +11,13 @@ class HashTable {
   void Delete(int32_t var_x);
 
  private:
+  static const int32_t kBaseAdd = 18445;
+  static const int32_t kBaseFactor = 42;
   int32_t BaseSize_;
+  int32_t buffer_size_;
   std::vector<int32_t>* table_;
   int32_t GetHash(int32_t var_x) const;
+  void Resize();
 };
 
 int32_t HashTable::GetHash(int32_t var_x) const {
@@ -24,14 +25,30 @@ int32_t HashTable::GetHash(int32_t var_x) const {
 }
 
 HashTable::HashTable(int32_t number) {
-  BaseSize_ = number + kSize;
+  BaseSize_ = number;
+  buffer_size_ = number * 2;
   table_ = new std::vector<int32_t>[BaseSize_];
 }
 
+void HashTable::Resize() {
+  int32_t old_size = BaseSize_;
+  BaseSize_ *= 2;
+  std::vector<int32_t>* table_2 = new std::vector<int32_t>[BaseSize_];
+  for (int32_t i = 0; i < old_size; i++) {
+    table_2[i] = table_[i];
+  }
+  std::swap(table_2, table_);
+  delete[] table_2;
+}
+
 void HashTable::Insert(int32_t var_x) {
+  if (BaseSize_ + 1 > int(buffer_size_)) {
+    Resize();
+  }
   if (Find(var_x) == -1) {
     int32_t index = GetHash(var_x);
     table_[index].push_back(var_x);
+    buffer_size_++;
   }
 }
 
@@ -58,19 +75,18 @@ void HashTable::Delete(int32_t var_x) {
   if (inner_index != -1) {
     int32_t index = GetHash(var_x);
     int32_t current_size = table_[index].size();
-    int32_t temporary = table_[index][current_size - 1];
-    table_[index][current_size - 1] = table_[index][inner_index];
-    table_[index][inner_index] = temporary;
-
+    std::swap(table_[index][current_size - 1], table_[index][inner_index]);
+    int temp = table_[index][inner_index];
+    table_[index][inner_index] = table_[index][current_size - 1];
+    table_[index][current_size - 1] = temp;
     table_[index].pop_back();
   }
 }
 
-int32_t number;
-std::string request_type;
-int32_t item;
-
 int main() {
+  int32_t number;
+  std::string request_type;
+  int32_t item;
   std::cin >> number;
   HashTable hash_table(number);
   for (int32_t i = 0; i < number; i++) {
