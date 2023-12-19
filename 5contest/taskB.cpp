@@ -1,10 +1,6 @@
 #include <iostream>
 #include <vector>
 
-static const int32_t kBaseFactor = 56;
-static const int32_t kBaseAdd = 4567;
-static const int32_t kMod = 156;
-
 class HashTable {
  public:
   HashTable(int64_t num);
@@ -14,23 +10,42 @@ class HashTable {
   void Delete(int32_t var_x);
 
  private:
-  int64_t kBaseSize_;
+  static const int32_t kBaseFactor = 56;
+  static const int32_t kBaseAdd = 4567;
+  int64_t BaseSize_;
+  int64_t buffer_size_;
   std::vector<int64_t>* table_;
   int64_t GetHash(int64_t var_x) const;
+  void Resize();
 };
 
 int64_t HashTable::GetHash(int64_t var_x) const {
-  return static_cast<int64_t>((kBaseFactor * var_x + kBaseAdd) % kBaseSize_);
+  return static_cast<int64_t>((kBaseFactor * var_x + kBaseAdd) % BaseSize_);
 }
 
 HashTable::HashTable(int64_t num) {
-  kBaseSize_ = num + (rand() % kMod);
-  table_ = new std::vector<int64_t>[kBaseSize_];
+  BaseSize_ = num;
+  buffer_size_ = num * 2;
+  table_ = new std::vector<int64_t>[BaseSize_];
+}
+void HashTable::Resize() {
+  int32_t old_size = BaseSize_;
+  BaseSize_ *= 2;
+  std::vector<int64_t>* table_2 = new std::vector<int64_t>[BaseSize_];
+  for (int32_t i = 0; i < old_size; i++) {
+    table_2[i] = table_[i];
+  }
+  std::swap(table_2, table_);
+  delete[] table_2;
 }
 
 void HashTable::Insert(int32_t var_x) {
+  if (BaseSize_ + 1 > int(buffer_size_)) {
+    Resize();
+  }
   int32_t index = GetHash(var_x);
   table_[index].push_back(var_x);
+  buffer_size_++;
 }
 
 int32_t HashTable::Find(int32_t var_x) const {
@@ -58,16 +73,13 @@ void HashTable::Delete(int32_t var_x) {
   if (inner_index != -1) {
     int32_t index = GetHash(var_x);
     int32_t cur_size = table_[index].size();
-    int32_t temp = table_[index][cur_size - 1];
-    table_[index][cur_size - 1] = table_[index][inner_index];
-    table_[index][inner_index] = temp;
+    std::swap(table_[index][cur_size - 1], table_[index][inner_index]);
     table_[index].pop_back();
   }
 }
 
 int quantity;
 std::vector<int64_t> ans;
-size_t index_sz;
 
 size_t Solution() {
   int64_t var_x;
@@ -92,6 +104,7 @@ size_t Solution() {
 }
 
 int main() {
+  size_t index_sz;
   std::ios_base::sync_with_stdio(false);
   std::cin.tie(nullptr);
   std::cin >> quantity;
