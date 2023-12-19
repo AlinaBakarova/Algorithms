@@ -1,17 +1,20 @@
 #include <bits/stdc++.h>
 
-int main() {
-  int num;
-  std::cin >> num;
+#include <iostream>
+
+static const int kSize = 1500;
+
+int64_t Solution(int num) {
   std::vector<int> allx;
   std::vector<int> ally;
-  std::vector<int> x1(num);
-  std::vector<int> x2(num);
-  std::vector<int> y1(num);
-  std::vector<int> y2(num);
+  std::vector<int> x1(kSize);
+  std::vector<int> x2(kSize);
+  std::vector<int> rr(kSize);
+  std::vector<int> y2(kSize);
+  int64_t ans = 0;
   for (int i = 0; i < num; ++i) {
-    std::cin >> x1[i] >> y1[i] >> x2[i] >> y2[i];
-    ally.push_back(y1[i]);
+    std::cin >> x1[i] >> rr[i] >> x2[i] >> y2[i];
+    ally.push_back(rr[i]);
     ally.push_back(y2[i]);
     allx.push_back(x1[i]);
     allx.push_back(x2[i]);
@@ -23,30 +26,31 @@ int main() {
   int cntx = allx.size();
   int cnty = ally.size();
   std::vector<std::vector<int>> vec_d(cntx + 1, std::vector<int>(cnty + 1));
-  for (int i = 0; i < num; ++i) {
-    int i1 = lower_bound((allx).begin(), (allx).end(), x1[i]) - allx.begin();
-    int i2 = lower_bound((allx).begin(), (allx).end(), x2[i]) - allx.begin();
-    int j1 = lower_bound((ally).begin(), (ally).end(), y1[i]) - ally.begin();
-    int j2 = lower_bound((ally).begin(), (ally).end(), y2[i]) - ally.begin();
+  int ind = 0;
+  while (ind < num) {
+    int i1 = lower_bound((allx).begin(), (allx).end(), x1[ind]) - allx.begin();
+    int i2 = lower_bound((allx).begin(), (allx).end(), x2[ind]) - allx.begin();
+    int j1 = lower_bound((ally).begin(), (ally).end(), rr[ind]) - ally.begin();
+    int j2 = lower_bound((ally).begin(), (ally).end(), y2[ind]) - ally.begin();
     vec_d[i1][j1] += 1;
     vec_d[i1][j2] -= 1;
     vec_d[i2][j1] -= 1;
     vec_d[i2][j2] += 1;
+    ++ind;
   }
   for (int i = 0; i <= cntx; ++i) {
     for (int j = 0; j <= cnty; ++j) {
-      if (i > 0) {
+      if (i > 0 && j > 0) {
         vec_d[i][j] += vec_d[i - 1][j];
-        if (j > 0) {
-          vec_d[i][j] -= vec_d[i - 1][j - 1];
-        }
+        vec_d[i][j] -= vec_d[i - 1][j - 1];
+      } else if (i > 0) {
+        vec_d[i][j] += vec_d[i - 1][j];
       }
       if (j > 0) {
         vec_d[i][j] += vec_d[i][j - 1];
       }
     }
   }
-  int64_t ans = 0;
   for (int i = 0; i < cntx; ++i) {
     for (int j = 0; j < cnty; ++j) {
       if (vec_d[i][j] > 0) {
@@ -56,5 +60,11 @@ int main() {
       }
     }
   }
-  std::cout << ans << std::endl;
+  return ans;
+}
+
+int main() {
+  int num;
+  std::cin >> num;
+  std::cout << Solution(num) << std::endl;
 }
