@@ -1,0 +1,48 @@
+#include <iostream>
+#include <set>
+#include <string>
+#include <unordered_map>
+
+std::string GetKey(std::string& str) {
+  std::unordered_map<char, int32_t> code;
+  std::string ans;
+  int32_t cnt = 0;
+  size_t i2 = 0;
+  size_t size2 = str.size();
+  while (i2 < size2) {
+    if (code.contains(str[i2])) {
+      ans.push_back(static_cast<char>(code[str[i2]] + 'A'));
+    } else {
+      code[str[i2]] = cnt;
+      ans.push_back(static_cast<char>('A' + cnt));
+      ++cnt;
+      ans.push_back(static_cast<char>(code[str[i2]] + 'A'));
+    }
+    ++i2;
+  }
+  return ans;
+}
+
+int32_t quantity;
+std::set<std::string> res;
+std::string request;
+
+int main() {
+  std::ios_base::sync_with_stdio(false);
+  std::cin.tie(nullptr);
+  std::cin >> quantity;
+  int32_t index = 0;
+  while (index < quantity) {
+    std::string str;
+    std::cin >> request >> str;
+
+    if ((request == "?") && (res.contains(GetKey(str)))) {
+      std::cout << "YES" << std::endl;
+    } else if (request == "?") {
+      std::cout << "NO" << std::endl;
+    } else if (request == "+") {
+      res.insert(GetKey(str));
+    }
+    ++index;
+  }
+}
